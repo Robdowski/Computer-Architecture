@@ -9,6 +9,8 @@ class CPU:
         self.pc = 0
         self.reg = [0] * 8
         self.ram = [0] * 256
+        self.sp = 0xf4
+        self.reg[7] = self.sp
 
     def ram_read(self, arg):
         return self.ram[arg]
@@ -23,7 +25,7 @@ class CPU:
         with open(f'examples/{filepath}', "r") as a_file:
             for line in a_file:
                 stripped_line = line.strip()
-                if set(line[0:7]) in [{'0'}, {'1'}, {'0', '1'}]: 
+                if set(line[0:8]) in [{'0'}, {'1'}, {'0', '1'}]: 
                     num  = int('0b' + stripped_line[0:8], base=2)
                     self.ram[address] = num
                     address += 1
@@ -50,7 +52,7 @@ class CPU:
         elif op == "SUB":
             self.reg[reg_a] -= self.reg[reg_b]
         elif op == "MUL":
-            self.reg[reg_a] * self.reg[reg_b]
+            self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -84,6 +86,8 @@ class CPU:
         PRN = 0b01000111
         HLT = 0b00000001
         MUL = 0b10100010
+        POP = 0b01000110
+        PUSH = 0b01000101
 
         while running:
             command = self.ram[self.pc]
@@ -106,6 +110,25 @@ class CPU:
                 reg_b = self.ram[self.pc + 2]
                 self.alu("MUL", reg_a, reg_b)
                 self.pc += 3
+
+            elif command == POP:
+                reg = self.ram[self.pc + 1]
+                val = self.ram[self.sp]
+
+                self.reg[reg] = val
+
+                self.sp += 1
+                self.pc += 2
+
+            elif command == PUSH:
+                reg = self.ram[self.pc + 1]
+                reg_val = self.reg[reg]
+
+                self.sp -= 1
+
+                self.ram[self.sp] = reg_val
+
+                self.pc += 2
 
             elif command == HLT:
                 running = False
