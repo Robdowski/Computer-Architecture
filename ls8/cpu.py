@@ -40,6 +40,7 @@ class CPU:
         #     0b00000001, # HLT
         # ]
 
+
         
            
 
@@ -88,6 +89,9 @@ class CPU:
         MUL = 0b10100010
         POP = 0b01000110
         PUSH = 0b01000101
+        CALL = 0b01010000
+        RET = 0b00010001
+        ADD = 0b10100000
 
         while running:
             command = self.ram[self.pc]
@@ -129,6 +133,25 @@ class CPU:
                 self.ram[self.sp] = reg_val
 
                 self.pc += 2
+
+            elif command == CALL:
+                reg_address = self.ram[self.pc + 1]
+                new_pc = self.reg[reg_address]
+                next_instruction = self.pc+2
+                self.sp -= 1
+                self.ram[self.sp] = next_instruction
+
+                self.pc = new_pc
+
+            elif command == RET:
+                self.pc = self.ram[self.sp]
+                self.sp += 1
+
+            elif command == ADD:
+                reg_a = self.ram[self.pc + 1]
+                reg_b = self.ram[self.pc + 2]
+                self.alu("ADD", reg_a, reg_b)
+                self.pc += 3
 
             elif command == HLT:
                 running = False

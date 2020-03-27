@@ -7,6 +7,5 @@ from cpu import *
 
 cpu = CPU()
 
-cpu.load('stack.ls8')
-cpu.trace()
+cpu.load('call.ls8')
 cpu.run()
