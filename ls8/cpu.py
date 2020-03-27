@@ -11,7 +11,9 @@ class CPU:
         self.ram = [0] * 256
         self.sp = 0xf4
         self.reg[7] = self.sp
-        self.equal_flag = {}
+        self.equal_flag = 00000000
+        self.reg[4] = self.equal_flag
+        
 
     def ram_read(self, arg):
         return self.ram[arg]
@@ -60,19 +62,13 @@ class CPU:
 
         elif op == "CMP":
             if reg_a == reg_b:
-                self.equal_flag["E"] = 1
-                self.equal_flag["L"] = 0
-                self.equal_flag["G"] = 0
+                self.equal_flag = 0b00000001
 
             elif reg_a < reg_b:
-                self.equal_flag["E"] = 0
-                self.equal_flag["L"] = 1
-                self.equal_flag["G"] = 0
+                self.equal_flag = 0b00000100
 
             elif reg_a > reg_b:
-                self.equal_flag["E"] = 0
-                self.equal_flag["L"] = 0
-                self.equal_flag["G"] = 1
+                self.equal_flag = 0b00000010
 
         elif op == "AND":
             result = reg_a & reg_b
@@ -230,7 +226,7 @@ class CPU:
                 reg_address = self.ram[self.pc +1]
                 reg_to_jump = self.reg[reg_address]
 
-                if self.equal_flag["E"] == 1:
+                if self.equal_flag == 1:
                     self.pc = reg_to_jump
                 else:
                     self.pc += 2
@@ -239,7 +235,7 @@ class CPU:
                 reg_address = self.ram[self.pc +1]
                 reg_to_jump = self.reg[reg_address]
 
-                if self.equal_flag["E"] == 0:
+                if self.equal_flag != 1:
                     self.pc = reg_to_jump
                 else:
                     self.pc += 2
