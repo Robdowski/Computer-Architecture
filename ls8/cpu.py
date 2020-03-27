@@ -11,6 +11,7 @@ class CPU:
         self.ram = [0] * 256
         self.sp = 0xf4
         self.reg[7] = self.sp
+        self.equal_flag = {}
 
     def ram_read(self, arg):
         return self.ram[arg]
@@ -50,10 +51,57 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
+
         elif op == "SUB":
             self.reg[reg_a] -= self.reg[reg_b]
+
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
+
+        elif op == "CMP":
+            if reg_a == reg_b:
+                self.equal_flag["E"] = 1
+                self.equal_flag["L"] = 0
+                self.equal_flag["G"] = 0
+
+            elif reg_a < reg_b:
+                self.equal_flag["E"] = 0
+                self.equal_flag["L"] = 1
+                self.equal_flag["G"] = 0
+
+            elif reg_a > reg_b:
+                self.equal_flag["E"] = 0
+                self.equal_flag["L"] = 0
+                self.equal_flag["G"] = 1
+
+        elif op == "AND":
+            result = reg_a & reg_b
+            return result
+
+        elif op == "OR":
+            result = reg_a | reg_b
+            return result
+
+        elif op == "XOR":
+            result = reg_a ^ reg_b
+            return result
+
+        elif op == "NOT":
+            result = ~reg_a
+            return result
+
+        elif op == "SHL":
+            result = reg_a << reg_b
+            return result
+        
+        elif op == "SHR":
+            result = reg_a >> reg_b
+            return result
+
+        elif op == "MOD":
+            result = reg_a % reg_b
+            return result
+
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -92,6 +140,19 @@ class CPU:
         CALL = 0b01010000
         RET = 0b00010001
         ADD = 0b10100000
+        CMP = 0b10100111
+        JEQ = 0b01010101
+        JNE = 0b01010110
+        JMP = 0b01010100
+
+        AND = 0b10101000
+        OR = 0b10101010
+        XOR = 0b10101011
+        NOT = 0b01101001
+        SHL = 0b10101100
+        SHR = 0b10101101
+        MOD = 0b10100100
+        ADDI = 0b10110000
 
         while running:
             command = self.ram[self.pc]
@@ -152,6 +213,104 @@ class CPU:
                 reg_b = self.ram[self.pc + 2]
                 self.alu("ADD", reg_a, reg_b)
                 self.pc += 3
+
+            elif command == CMP:
+                regA = self.reg[self.ram[self.pc+1]]
+                regB = self.reg[self.ram[self.pc+2]]
+                self.alu("CMP", regA, regB)
+                self.pc += 3
+            
+            elif command == JMP:
+                reg_address = self.ram[self.pc +1]
+                reg_to_jump = self.reg[reg_address]
+
+                self.pc = reg_to_jump
+
+            elif command == JEQ:
+                reg_address = self.ram[self.pc +1]
+                reg_to_jump = self.reg[reg_address]
+
+                if self.equal_flag["E"] == 1:
+                    self.pc = reg_to_jump
+                else:
+                    self.pc += 2
+
+            elif command == JNE:
+                reg_address = self.ram[self.pc +1]
+                reg_to_jump = self.reg[reg_address]
+
+                if self.equal_flag["E"] == 0:
+                    self.pc = reg_to_jump
+                else:
+                    self.pc += 2
+
+            elif command == AND:
+                reg_a = self.reg[self.ram[self.pc+1]]
+                reg_b = self.reg[self.ram[self.pc+2]]
+
+                result = self.alu("AND", reg_a, reg_b)
+
+                reg_a = result
+
+            elif command == OR:
+                reg_a = self.reg[self.ram[self.pc+1]]
+                reg_b = self.reg[self.ram[self.pc+2]]
+
+                result = self.alu("OR", reg_a, reg_b)
+
+                reg_a = result
+
+            elif command == XOR:
+                reg_a = self.reg[self.ram[self.pc+1]]
+                reg_b = self.reg[self.ram[self.pc+2]]
+
+                result = self.alu("XOR", reg_a, reg_b)
+
+                reg_a = result
+
+            elif command == NOT:
+                reg = self.reg[self.ram[self.pc+1]]
+
+                result = self.alu("NOT", reg, None)
+
+                reg = result
+
+            elif command == SHL:
+                reg_a = self.reg[self.ram[self.pc+1]]
+                reg_b = self.reg[self.ram[self.pc+2]]
+
+                result = self.alu("SHL", reg_a, reg_b)
+
+                reg_a = result
+            
+            elif command == SHR:
+                reg_a = self.reg[self.ram[self.pc+1]]
+                reg_b = self.reg[self.ram[self.pc+2]]
+
+                result = self.alu("SHR", reg_a, reg_b)
+
+                reg_a = result
+            
+            elif command == MOD:
+                reg_a = self.reg[self.ram[self.pc+1]]
+                reg_b = self.reg[self.ram[self.pc+2]]
+
+                if reg_b == 0:
+                    print("Cannot divide by 0!")
+                    self.pc += 3
+                    running=False
+
+                result = self.alu("SHR", reg_a, reg_b)
+
+                reg_a = result
+
+            elif command == ADDI:
+                value = self.ram[self.pc+1]
+                reg = self.reg[self.ram[self.pc+2]]
+
+                result = self.alu("ADD", value, reg)
+
+                reg = result
 
             elif command == HLT:
                 running = False
