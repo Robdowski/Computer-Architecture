@@ -7,5 +7,5 @@ from cpu import *
 
 cpu = CPU()
 
-cpu.load('sctest2.ls8')
+cpu.load('stretch.ls8')
 cpu.run()

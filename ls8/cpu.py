@@ -72,31 +72,32 @@ class CPU:
 
         elif op == "AND":
             result = reg_a & reg_b
-            return result
+            self.reg[self.ram[self.pc+1]] = result
 
         elif op == "OR":
             result = reg_a | reg_b
-            return result
+            self.reg[self.ram[self.pc+1]] = result
+            
 
         elif op == "XOR":
             result = reg_a ^ reg_b
-            return result
+            self.reg[self.ram[self.pc+1]] = result
 
         elif op == "NOT":
             result = ~reg_a
-            return result
+            self.reg[self.ram[self.pc+1]] = result
 
         elif op == "SHL":
             result = reg_a << reg_b
-            return result
+            self.reg[self.ram[self.pc+1]] = result
         
         elif op == "SHR":
             result = reg_a >> reg_b
-            return result
+            self.reg[self.ram[self.pc+1]] = result
 
         elif op == "MOD":
             result = reg_a % reg_b
-            return result
+            self.reg[self.ram[self.pc+1]] = result
 
         else:
             raise Exception("Unsupported ALU operation")
@@ -136,6 +137,7 @@ class CPU:
         CALL = 0b01010000
         RET = 0b00010001
         ADD = 0b10100000
+
         CMP = 0b10100111
         JEQ = 0b01010101
         JNE = 0b01010110
@@ -244,48 +246,51 @@ class CPU:
                 reg_a = self.reg[self.ram[self.pc+1]]
                 reg_b = self.reg[self.ram[self.pc+2]]
 
-                result = self.alu("AND", reg_a, reg_b)
+                self.alu("AND", reg_a, reg_b)
 
-                reg_a = result
+                self.pc += 3
 
             elif command == OR:
                 reg_a = self.reg[self.ram[self.pc+1]]
                 reg_b = self.reg[self.ram[self.pc+2]]
 
-                result = self.alu("OR", reg_a, reg_b)
+                self.alu("OR", reg_a, reg_b)
 
-                reg_a = result
+                
+                self.pc += 3
 
             elif command == XOR:
                 reg_a = self.reg[self.ram[self.pc+1]]
                 reg_b = self.reg[self.ram[self.pc+2]]
 
-                result = self.alu("XOR", reg_a, reg_b)
+                self.alu("XOR", reg_a, reg_b)
 
-                reg_a = result
+                
+                self.pc += 3
 
             elif command == NOT:
                 reg = self.reg[self.ram[self.pc+1]]
 
-                result = self.alu("NOT", reg, None)
+                self.alu("NOT", reg, None)
 
-                reg = result
+                self.pc += 2
 
             elif command == SHL:
                 reg_a = self.reg[self.ram[self.pc+1]]
                 reg_b = self.reg[self.ram[self.pc+2]]
 
-                result = self.alu("SHL", reg_a, reg_b)
+                self.alu("SHL", reg_a, reg_b)
 
-                reg_a = result
+                
+                self.pc += 3
             
             elif command == SHR:
                 reg_a = self.reg[self.ram[self.pc+1]]
                 reg_b = self.reg[self.ram[self.pc+2]]
 
-                result = self.alu("SHR", reg_a, reg_b)
+                self.alu("SHR", reg_a, reg_b)
 
-                reg_a = result
+                self.pc += 3
             
             elif command == MOD:
                 reg_a = self.reg[self.ram[self.pc+1]]
@@ -296,17 +301,17 @@ class CPU:
                     self.pc += 3
                     running=False
 
-                result = self.alu("SHR", reg_a, reg_b)
+                self.alu("MOD", reg_a, reg_b)
 
-                reg_a = result
+                self.pc += 3
 
             elif command == ADDI:
                 value = self.ram[self.pc+1]
                 reg = self.reg[self.ram[self.pc+2]]
 
-                result = self.alu("ADD", value, reg)
+                self.alu("ADD", value, reg)
 
-                reg = result
+                self.pc += 3
 
             elif command == HLT:
                 running = False
